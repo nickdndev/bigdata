@@ -113,3 +113,40 @@ hdfs dfs -cp /airbnb/data/AB_NYC_2019.csv /airbnb/AB_NYC_2019_copy.csv
 hdfs dfs -ls /airbnb/ 
 ```
 ![image](https://user-images.githubusercontent.com/49230518/135102415-e3a4e6dc-678c-4000-aa13-1f3c6a25a732.png)
+
+12. Изменить replication factor для файла. Как долго занимает время на увеличение /
+уменьшение числа реплик для файла?
+
+![image](https://user-images.githubusercontent.com/49230518/135103769-f2f9caa5-9e83-4455-bdac-bbcbfe3843a7.png)
+```
+hdfs dfs -setrep -w 4 /airbnb/AB_NYC_2019_copy.csv
+```
+![image](https://user-images.githubusercontent.com/49230518/135104194-cd210c01-87d8-437d-a741-c84b3930963d.png)
+
+
+![image](https://user-images.githubusercontent.com/49230518/135104146-208921e4-6e59-4e8a-b97a-b3b70b055d0d.png)
+
+```
+hdfs dfs -setrep -w 1 /airbnb/AB_NYC_2019_copy.csv
+```
+
+![image](https://user-images.githubusercontent.com/49230518/135104884-bba4bce2-424f-49ef-9b25-0b4285d0dac3.png)
+
+
+![image](https://user-images.githubusercontent.com/49230518/135104951-881cdc0b-65ae-4430-9279-f40fb8fa585f.png)
+
+Уменьшение реплик происходит намного быстрее, но можно не передавать флаг -w , чтобы не ждать 
+
+13. Найдите информацию по файлу, блокам и их расположениям с помощью “hdfs fsck”
+```
+hdfs fsck /airbnb/AB_NYC_2019_copy.csv
+```
+![image](https://user-images.githubusercontent.com/49230518/135105391-3ed81ca5-5d0d-4787-9d25-22793a85a722.png)
+
+14. Получите информацию по любому блоку из п.2 с помощью "hdfs fsck -blockId”.
+Обратите внимание на Generation Stamp (GS number).
+
+```
+hdfs fsck -blockId blk_1073741837
+```
+![image](https://user-images.githubusercontent.com/49230518/135107256-69faac5d-2f18-4b8c-8e0c-a0cf470774cb.png)
