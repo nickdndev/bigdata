@@ -70,3 +70,46 @@ hdfs dfs -ls /
 ```
 ![image](https://user-images.githubusercontent.com/49230518/135096139-f0765775-bb7d-444d-ac36-ac5a62d782c4.png)
 
+7. Скопируйте любой в новую папку на HDFS
+
+```
+hdfs dfs -put AB_NYC_2019.csv /airbnb/data/
+```
+![image](https://user-images.githubusercontent.com/49230518/135100796-b280f99e-86a7-4f4d-aa45-31da2debc459.png)
+
+```
+hdfs dfs -ls /airbnb/data/
+```
+![image](https://user-images.githubusercontent.com/49230518/135100915-c7c9c8cf-4256-46a2-9482-c74f6f40088e.png)
+
+8. Выведите содержимое HDFS-файла на экран.
+
+```
+hdfs dfs -cat /airbnb/data/AB_NYC_2019.csv
+```
+![image](https://user-images.githubusercontent.com/49230518/135101372-0047a6b5-72d4-47a6-a1b6-4452119d4b11.png)
+
+ 9. Выведите содержимое нескольких последних строчек HDFS-файла на экран.
+ ```
+ hdfs dfs -tail /airbnb/data/AB_NYC_2019.csv
+ ```
+ 
+ ![image](https://user-images.githubusercontent.com/49230518/135101579-358eb1da-7abd-42d2-bbaf-1a67413b9889.png)
+
+10. Выведите содержимое нескольких первых строчек HDFS-файла на экран.
+
+```
+hdfs dfs -head /airbnb/data/AB_NYC_2019.csv
+```
+![image](https://user-images.githubusercontent.com/49230518/135101924-a653a7ac-6a90-479a-b08c-0e379f149be9.png)
+
+11. Переместите копию файла в HDFS на новую локацию.
+```
+hdfs dfs -cp /airbnb/data/AB_NYC_2019.csv /airbnb/AB_NYC_2019_copy.csv
+```
+![image](https://user-images.githubusercontent.com/49230518/135102317-dbe01bee-a867-45d8-a8ca-e45f739d4a12.png)
+
+```
+hdfs dfs -ls /airbnb/ 
+```
+![image](https://user-images.githubusercontent.com/49230518/135102415-e3a4e6dc-678c-4000-aa13-1f3c6a25a732.png)
