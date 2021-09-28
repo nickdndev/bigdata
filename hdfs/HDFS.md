@@ -11,5 +11,23 @@
 
 ### Tasks with HDFS
 1.  Создайте папку в корневой HDFS-папке
+```
+hdfs dfs -mkdir /airbnb
+```
+![image](https://user-images.githubusercontent.com/49230518/135089671-5c7a8180-b842-4a68-ac50-e6dfee84d162.png)
 
+```
+hdfs dfs -ls /
+```
+![image](https://user-images.githubusercontent.com/49230518/135089736-c8f44d9d-4fac-4333-9fb9-c522e93d115f.png)
 
+2.  Создайте в созданной папке новую вложенную папку.
+```
+hdfs dfs -mkdir /airbnb/data
+```
+![image](https://user-images.githubusercontent.com/49230518/135089849-99dcc091-f37f-469a-9e33-d4a609e63852.png)
+
+```
+hdfs dfs -ls /airbnb
+```
+![image](https://user-images.githubusercontent.com/49230518/135089926-79bf2340-940f-49a4-8e81-d184ea74144c.png)
