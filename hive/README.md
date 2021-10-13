@@ -66,7 +66,7 @@ limit 10;
 ```
 ![image](https://user-images.githubusercontent.com/49230518/136998252-587f2870-6ca9-49fa-9fda-40ff231ea5ec.png)
 
-- Самые популярные исполнители 10 самых популярных тегов ластфм (10 баллов) (done)
+- Самые популярные исполнители 10 самых популярных тегов ластфм (искал топ исполнителей, которые имеют тон теги) (10 баллов) (done)
 ```
 with top_10_tags as (select tag as tag, count(tag) as tag_count
                      from (select trim(lower(tag)) as tag
