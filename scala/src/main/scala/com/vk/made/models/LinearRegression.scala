@@ -1,12 +1,14 @@
-package com.vk.made.model
+package com.vk.made.models
 
-
-import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.linalg.{ DenseMatrix, DenseVector }
 import cats.implicits.catsSyntaxOptionId
 
 class LinearRegression {
   var weightsOpt: Option[DenseVector[Double]] = None
-
+  /*
+   Idea to fit get from this open source solution
+    https://github.com/tjhunter/scalanlp-core/blob/master/learn/src/main/scala/breeze/regress/LinearRegression.scala
+   */
   def fit(X: DenseMatrix[Double], y: DenseVector[Double]): Unit = {
     val cov    = (DenseMatrix.zeros[Double](X.cols, X.cols) + (X.t * X))
     val scaled = DenseVector.zeros[Double](X.cols) + (X.t * y)
@@ -15,8 +17,9 @@ class LinearRegression {
 
   def predict(X: DenseMatrix[Double]): DenseVector[Double] =
     weightsOpt match {
-      case None          => throw new RuntimeException("Model is not fitted,please fit model before call predict ")
-      case Some(weights) => X * weights
+      case None          => throw new RuntimeException("Model is not fitted,please fit model before call predict!!")
+      case Some(weights) =>
+        X * weights
     }
 
 }
