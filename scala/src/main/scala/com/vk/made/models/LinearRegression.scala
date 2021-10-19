@@ -18,8 +18,7 @@ class LinearRegression {
   def predict(X: DenseMatrix[Double]): DenseVector[Double] =
     weightsOpt match {
       case None          => throw new RuntimeException("Model is not fitted,please fit model before call predict!!")
-      case Some(weights) =>
-        X * weights
+      case Some(weights) => X * weights
     }
 
 }

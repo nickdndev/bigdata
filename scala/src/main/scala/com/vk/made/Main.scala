@@ -1,10 +1,11 @@
 package com.vk.made
 
+import breeze.linalg.DenseVector
 import com.vk.made.models.LinearRegression
-import com.vk.made.tools.data.DataTool.{readCsv, writeCsv}
-import com.vk.made.tools.data.ValidationTool.MSE
-
+import com.vk.made.tools._
+import org.slf4j.LoggerFactory
 object Main extends App {
+  val logger = LoggerFactory.getLogger(getClass.getSimpleName)
 
   var targetColumn: Int = 0
 
@@ -24,17 +25,37 @@ object Main extends App {
       case Array("--train-output", arg: String)      => trainOutput = arg
       case Array("--validation-output", arg: String) => valOutput = arg
     }
-  val (x_train, y_train) = readCsv(filePath = trainInput, targetColumn = targetColumn)
+  logger.info(s"""
+                 | Target column: $targetColumn
+                 | Train: $trainInput
+                 | Val:$valInput
+                 | Train output: $trainOutput
+                 | Val output: $valOutput 
+                 | """.stripMargin)
+
+  val (x_train, y_train) = trainInput.fromFile(targetColumn = targetColumn)
 
   val linearRegressionModel: LinearRegression = LinearRegression()
+
+  logger.info("Model is starting fit")
+
   linearRegressionModel.fit(x_train, y_train)
 
-  val y_train_predict = linearRegressionModel.predict(x_train)
-  val mse_train       = MSE(y_train_predict, y_train)
-  writeCsv(trainOutput, y_train_predict)
+  logger.info("Train model finished")
 
-  val (x_val, y_val) = readCsv(filePath = valInput, targetColumn = targetColumn)
+  val y_train_predict: DenseVector[Double] = linearRegressionModel.predict(x_train)
+  val mse_train                            = (y_train_predict, y_train).mse
+
+  logger.info(s"MSE model for train dataset is:$mse_train")
+
+  y_train_predict.toFile(trainOutput)
+
+  val (x_val, y_val) = valInput.fromFile(targetColumn = targetColumn)
   val y_val_predict  = linearRegressionModel.predict(x_val)
-  val mse_val        = MSE(y_val_predict, y_val)
-  writeCsv(valOutput, y_val_predict)
+  val mse_val        = (y_val_predict, y_val).mse
+
+  logger.info(s"MSE model for val dataset is:$mse_val")
+
+  y_val_predict.toFile(valOutput)
+
 }
