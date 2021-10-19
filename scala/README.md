@@ -12,5 +12,5 @@ Sample input args:
 ![image](https://user-images.githubusercontent.com/49230518/137862678-dcb4217e-6ab8-470d-b420-19dce575927e.png)
 
 
-Notes: Tools was implemeted via implicits
+Notes: Tools were implemeted via implicits
 
