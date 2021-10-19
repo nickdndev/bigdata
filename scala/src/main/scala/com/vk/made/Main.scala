@@ -33,7 +33,7 @@ object Main extends App {
                  | Val output: $valOutput 
                  | """.stripMargin)
 
-  val (x_train, y_train) = trainInput.fromFile(targetColumn = targetColumn)
+  val (x_train, y_train: DenseVector[Double]) = trainInput.fromFile(targetColumn = targetColumn)
 
   val linearRegressionModel: LinearRegression = LinearRegression()
 
@@ -44,15 +44,15 @@ object Main extends App {
   logger.info("Train model finished")
 
   val y_train_predict: DenseVector[Double] = linearRegressionModel.predict(x_train)
-  val mse_train                            = (y_train_predict, y_train).mse
+  val mse_train: Double                    = (y_train_predict, y_train).mse
 
   logger.info(s"MSE model for train dataset is:$mse_train")
 
   y_train_predict.toFile(trainOutput)
 
-  val (x_val, y_val) = valInput.fromFile(targetColumn = targetColumn)
-  val y_val_predict  = linearRegressionModel.predict(x_val)
-  val mse_val        = (y_val_predict, y_val).mse
+  val (x_val, y_val: DenseVector[Double]) = valInput.fromFile(targetColumn = targetColumn)
+  val y_val_predict: DenseVector[Double]  = linearRegressionModel.predict(x_val)
+  val mse_val: Double                     = (y_val_predict, y_val).mse
 
   logger.info(s"MSE model for val dataset is:$mse_val")
 
