@@ -5,10 +5,7 @@ import cats.implicits.catsSyntaxOptionId
 
 class LinearRegression {
   var weightsOpt: Option[DenseVector[Double]] = None
-  /*
-   Idea to fit get from this open source solution
-    https://github.com/tjhunter/scalanlp-core/blob/master/learn/src/main/scala/breeze/regress/LinearRegression.scala
-   */
+
   def fit(X: DenseMatrix[Double], y: DenseVector[Double]): Unit = {
     val cov    = (DenseMatrix.zeros[Double](X.cols, X.cols) + (X.t * X))
     val scaled = DenseVector.zeros[Double](X.cols) + (X.t * y)
