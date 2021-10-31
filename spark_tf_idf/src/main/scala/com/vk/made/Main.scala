@@ -5,6 +5,9 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 
 object Main extends App {
+
+  val inputData: String = "dataset/tripadvisor_hotel_reviews.csv"
+
   val spark = SparkSession
     .builder()
     .master("local[*]")
@@ -12,8 +15,6 @@ object Main extends App {
     .getOrCreate()
 
   import spark.implicits._
-
-  val inputData: String = "data/tripadvisor_hotel_reviews.csv"
 
   val dataDF = spark
     .read
