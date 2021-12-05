@@ -22,17 +22,13 @@ object Main extends App {
     .option("header", "true")
     .csv(inputData)
     .select(regexp_replace(lower(col("Review")), "[^\\w\\s-]", "").as("review"))
-    .map { review =>
-      review
-        .mkString
-        .split(" ")
-        .filter(p => p.trim.nonEmpty)
-    }
 
-  val dataWithIdDF = dataDF
+  val dataSplitDF = dataDF.select(split(col("review"), " ").as("review"))
+
+  val dataWithIdDF = dataSplitDF
     .withColumn("review_id", monotonically_increasing_id())
-    .withColumn("token", explode($"value"))
-    .drop("value")
+    .withColumn("token", explode($"review"))
+    .drop("review")
 
   val dataWithIdCountDF = dataWithIdDF
     .groupBy("review_id", "token")
