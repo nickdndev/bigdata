@@ -1,5 +1,4 @@
 package org.apache.spark.ml.made
-
 import breeze.linalg.DenseVector
 import com.google.common.io.Files
 import org.apache.spark.ml.evaluation.RegressionEvaluator
@@ -10,36 +9,35 @@ import org.scalatest.matchers._
 
 class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpark with WithData {
 
-  private def validateModel(model: LinearRegressionModel, data: DataFrame): Unit = {
-    val df_result = model.transform(df)
-
-    val evaluator = new RegressionEvaluator()
+  private def check(model: LinearRegressionModel, data: DataFrame): Unit = {
+    val mse = new RegressionEvaluator()
       .setLabelCol("label")
       .setPredictionCol("prediction")
       .setMetricName("mse")
+      .evaluate(model.transform(df))
 
-    val mse = evaluator.evaluate(df_result)
     mse should be < 0.015
   }
 
-  val precisionDelta = 0.01
+  val precisionDelta = 0.03
 
   "Estimator" should "model weights" in {
-    val lr = new LinearRegression()
+
+    val weights = DenseVector(Array(1.5, 0.3, 0.7, 1.8))
+    val lr      = new LinearRegression(weights)
       .setFeaturesCol("features")
       .setLabelCol("label")
       .setPredictionCol("prediction")
-      .setLearningRate(1.0)
-      .setNumberIterations(100)
+      .setLearningRate(0.01)
+      .setNumberIterations(50)
 
     val model                       = lr.fit(df)
     val params: DenseVector[Double] = model.getWeights()
 
-    params(0) should be(0.022 +- precisionDelta)
-    params(1) should be(0.0016 +- precisionDelta)
-    params(2) should be(-0.14 +- precisionDelta)
-    params(3) should be(0.86 +- precisionDelta)
-    params(4) should be(-0.06 +- precisionDelta)
+    params(0) should be(0.52 +- precisionDelta)
+    params(1) should be(-0.18 +- precisionDelta)
+    params(2) should be(0.19 +- precisionDelta)
+    params(3) should be(1.24 +- precisionDelta)
   }
 
   "Model" should "estimation (mse) " in {
@@ -47,11 +45,11 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
       .setFeaturesCol("features")
       .setLabelCol("label")
       .setPredictionCol("prediction")
-      .setLearningRate(1.0)
-      .setNumberIterations(100)
+      .setLearningRate(0.01)
+      .setNumberIterations(50)
 
     val model = lr.fit(df)
-    validateModel(model, df)
+    check(model, df)
   }
 
   "Estimator" should "work after re-read" in {
@@ -62,8 +60,8 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
           .setFeaturesCol("features")
           .setLabelCol("label")
           .setPredictionCol("prediction")
-          .setLearningRate(1.0)
-          .setNumberIterations(100)
+          .setLearningRate(0.01)
+          .setNumberIterations(50)
       )
     )
 
@@ -77,7 +75,7 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
       .stages(0)
       .asInstanceOf[LinearRegressionModel]
 
-    validateModel(model, df)
+    check(model, df)
   }
 
   "Model" should "work after re-read" in {
@@ -88,8 +86,8 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
           .setFeaturesCol("features")
           .setLabelCol("label")
           .setPredictionCol("prediction")
-          .setLearningRate(1.0)
-          .setNumberIterations(100)
+          .setLearningRate(0.01)
+          .setNumberIterations(50)
       )
     )
 
@@ -99,6 +97,6 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
 
     val reRead = PipelineModel.load(tmpFolder.getAbsolutePath)
 
-    validateModel(reRead.stages(0).asInstanceOf[LinearRegressionModel], df)
+    check(reRead.stages(0).asInstanceOf[LinearRegressionModel], df)
   }
 }
