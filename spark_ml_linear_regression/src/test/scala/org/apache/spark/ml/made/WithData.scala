@@ -1,15 +1,21 @@
 package org.apache.spark.ml.made
 
-import breeze.linalg.DenseVector
-import org.apache.spark.ml.linalg.Vectors
-import org.apache.spark.sql.{DataFrame, functions}
+import breeze.linalg.{ DenseMatrix, DenseVector }
+import breeze.stats.distributions.Rand
+import org.apache.spark.ml.linalg.{ Matrices, Vector, Vectors }
+import org.apache.spark.sql.DataFrame
 
 trait WithData extends WithSpark {
-  import sqlc.implicits._
+  import spark.implicits._
 
-  lazy val df: DataFrame = Seq
-    .fill(10000)(Vectors.fromBreeze(DenseVector.rand(3)))
-    .map(x => Tuple1(x))
-    .toDF("features")
-    .withColumn("label", (functions.rand() * functions.lit(0.1) - functions.lit(0.05)).as("label"))
+  val featuresMatrix: DenseMatrix[Double] = DenseMatrix.rand(100000, 3, Rand.gaussian)
+  val hiddenModel: DenseVector[Double]    = DenseVector(Array(1.5, 0.3, -0.7))
+  val label: Vector                       = Vectors.fromBreeze(featuresMatrix * hiddenModel)
+  val df: DataFrame                       = Matrices
+    .fromBreeze(featuresMatrix)
+    .rowIter
+    .toSeq
+    .zip(label.toArray)
+    .toDF("features", "label")
+    .repartition(10)
 }

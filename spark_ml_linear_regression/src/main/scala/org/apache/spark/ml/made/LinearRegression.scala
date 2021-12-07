@@ -1,22 +1,22 @@
 package org.apache.spark.ml.made
 
-import breeze.linalg.{sum, DenseVector => BreezeVector}
+import breeze.linalg.{ sum, DenseVector => BreezeVector }
 import org.apache.spark.ml.PredictorParams
-import org.apache.spark.ml.linalg.{DenseVector, Vector, Vectors}
-import org.apache.spark.ml.param.{DoubleParam, IntParam, ParamMap}
-import org.apache.spark.ml.regression.{RegressionModel, Regressor}
+import org.apache.spark.ml.linalg.{ DenseVector, Vector, Vectors }
+import org.apache.spark.ml.param.{ DoubleParam, IntParam, ParamMap }
+import org.apache.spark.ml.regression.{ RegressionModel, Regressor }
 import org.apache.spark.ml.stat.Summarizer
 import org.apache.spark.ml.util._
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
-import org.apache.spark.sql.{DataFrame, Dataset, Encoder, Row}
+import org.apache.spark.sql.{ DataFrame, Dataset, Encoder, Row }
 
 trait LinearRegressionParams extends PredictorParams {
 
-   val numberIterations: IntParam = new IntParam(this, "numberIterations", "Iterations number")
-   val learningRate: DoubleParam  = new DoubleParam(this, "learningRate", "Learning Rate")
+  val numberIterations: IntParam = new IntParam(this, "numberIterations", "Iterations number")
+  val learningRate: DoubleParam  = new DoubleParam(this, "learningRate", "Learning Rate")
 
-  setDefault(learningRate, 1.0)
-  setDefault(numberIterations, 100)
+  setDefault(learningRate, 0.01)
+  setDefault(numberIterations, 50)
 
   def setLearningRate(value: Double): this.type = set(learningRate, value)
 
@@ -41,9 +41,9 @@ class LinearRegression(weightsOpt: Option[BreezeVector[Double]], override val ui
   override def copy(extra: ParamMap): LinearRegression = defaultCopy(extra)
 
   override protected def train(dataset: Dataset[_]): LinearRegressionModel = {
-    val numberFeatures: Int = MetadataUtils.getNumFeatures(dataset, $(featuresCol))
+    val numberFeatures: Int           = MetadataUtils.getNumFeatures(dataset, $(featuresCol))
     var weights: BreezeVector[Double] = weightsOpt.getOrElse(BreezeVector.zeros(numberFeatures + 1))
-    val gradCol                       = "gradient"
+    val gradientColumnName            = "gradient"
 
     val gradientEstimation = dataset
       .sqlContext
@@ -58,13 +58,20 @@ class LinearRegression(weightsOpt: Option[BreezeVector[Double]], override val ui
       )
 
     for (_ <- 0 to $(numberIterations)) {
-      val transformed_dataset: DataFrame = dataset.withColumn(gradCol, gradientEstimation(dataset($(featuresCol)), dataset($(labelCol))))
-      val Row(Row(grad_mean_arr)) = transformed_dataset
-        .select(Summarizer.metrics("mean").summary(transformed_dataset(gradCol)))
+      val transformed_dataset: DataFrame = dataset.withColumn(gradientColumnName, gradientEstimation(dataset($(featuresCol)), dataset($(labelCol))))
+      val meanGradient = transformed_dataset
+        .select(
+          Summarizer
+            .metrics("mean")
+            .summary(transformed_dataset(gradientColumnName))
+        )
         .first()
 
-      val grad_mean: BreezeVector[Double] = grad_mean_arr.asInstanceOf[DenseVector].asBreeze.toDenseVector
-      weights = weights - $(learningRate) * grad_mean
+      meanGradient match {
+        case Row(Row(grad_mean_arr))=>
+          val grad_mean: BreezeVector[Double] = grad_mean_arr.asInstanceOf[DenseVector].asBreeze.toDenseVector
+          weights = weights - $(learningRate) * grad_mean
+      }
     }
     val params = Vectors.fromBreeze(weights)
 

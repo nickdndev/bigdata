@@ -19,25 +19,24 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
     mse should be < 0.015
   }
 
-  val precisionDelta = 0.03
+  val precisionDelta = 0.05
 
   "Estimator" should "model weights" in {
 
-    val weights = DenseVector(Array(1.5, 0.3, 0.7, 1.8))
-    val lr      = new LinearRegression(weights)
+    val hiddenModel = Array(1.5, 0.3,-0.7)
+    val lr      = new LinearRegression()
       .setFeaturesCol("features")
       .setLabelCol("label")
       .setPredictionCol("prediction")
-      .setLearningRate(0.01)
-      .setNumberIterations(50)
+      .setLearningRate(0.6)
+      .setNumberIterations(5)
 
     val model                       = lr.fit(df)
     val params: DenseVector[Double] = model.getWeights()
 
-    params(0) should be(0.52 +- precisionDelta)
-    params(1) should be(-0.18 +- precisionDelta)
-    params(2) should be(0.19 +- precisionDelta)
-    params(3) should be(1.24 +- precisionDelta)
+    params(1) should be(hiddenModel(0) +- precisionDelta)
+    params(2) should be(hiddenModel(1) +- precisionDelta)
+    params(3) should be(hiddenModel(2) +- precisionDelta)
   }
 
   "Model" should "estimation (mse) " in {
@@ -45,8 +44,8 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
       .setFeaturesCol("features")
       .setLabelCol("label")
       .setPredictionCol("prediction")
-      .setLearningRate(0.01)
-      .setNumberIterations(50)
+      .setLearningRate(0.6)
+      .setNumberIterations(5)
 
     val model = lr.fit(df)
     check(model, df)
@@ -60,8 +59,8 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
           .setFeaturesCol("features")
           .setLabelCol("label")
           .setPredictionCol("prediction")
-          .setLearningRate(0.01)
-          .setNumberIterations(50)
+          .setLearningRate(0.6)
+          .setNumberIterations(5)
       )
     )
 
@@ -86,8 +85,8 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
           .setFeaturesCol("features")
           .setLabelCol("label")
           .setPredictionCol("prediction")
-          .setLearningRate(0.01)
-          .setNumberIterations(50)
+          .setLearningRate(0.6)
+          .setNumberIterations(5)
       )
     )
 
