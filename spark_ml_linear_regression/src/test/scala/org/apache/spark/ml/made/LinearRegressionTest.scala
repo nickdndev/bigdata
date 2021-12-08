@@ -30,6 +30,7 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
       .setPredictionCol("prediction")
       .setLearningRate(0.6)
       .setNumberIterations(5)
+      .setBatchSize(1024)
 
     val model                       = lr.fit(df)
     val params: DenseVector[Double] = model.getWeights()
