@@ -1,15 +1,15 @@
 package org.apache.spark.ml.made
 
-import breeze.linalg.{ sum, DenseVector => BreezeVector }
+import breeze.linalg.{sum, DenseVector => BreezeVector}
 import org.apache.spark.ml.PredictorParams
-import org.apache.spark.ml.linalg.{ DenseVector, Vector, Vectors }
-import org.apache.spark.ml.param.{ DoubleParam, IntParam, LongParam, ParamMap }
-import org.apache.spark.ml.regression.{ RegressionModel, Regressor }
+import org.apache.spark.ml.linalg.{DenseVector, Vector, Vectors}
+import org.apache.spark.ml.param.{DoubleParam, IntParam, LongParam, ParamMap}
+import org.apache.spark.ml.regression.{RegressionModel, Regressor}
 import org.apache.spark.ml.stat.Summarizer
 import org.apache.spark.ml.util._
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
-import org.apache.spark.sql.functions.{ col, monotonically_increasing_id }
-import org.apache.spark.sql.{ DataFrame, Dataset, Encoder, Row }
+import org.apache.spark.sql.functions.{col, monotonically_increasing_id, rand}
+import org.apache.spark.sql.{DataFrame, Dataset, Encoder, Row}
 
 trait LinearRegressionParams extends PredictorParams {
 
@@ -81,24 +81,42 @@ class LinearRegression(weightsOpt: Option[BreezeVector[Double]], override val ui
       )
 
     for (_ <- 0 to $(numberIterations)) {
-      val transformed_dataset: DataFrame = dataset
-        .withColumn("idx", monotonically_increasing_id())
-        .withColumn(gradientColumnName, gradientEstimation(dataset($(featuresCol)), dataset($(labelCol))))
-        .withColumn("group_id", calculateGroup(col("idx")))
+      for (_ <- 0 to ($(datasetSize) / $(batchSize)).toInt) {
+        val transformed_dataset: DataFrame = dataset
+          .orderBy(rand()).limit($(batchSize))
+          //        .withColumn("idx", monotonically_increasing_id())
+          .withColumn(gradientColumnName, gradientEstimation(dataset($(featuresCol)), dataset($(labelCol))))
 
-      val meanGradient = transformed_dataset
-        .groupBy(col("group_id"))
-        .agg(
-          Summarizer
-            .metrics("mean")
-            .summary(transformed_dataset(gradientColumnName))
-        )
-        .collect()
+        //        .withColumn("group_id", calculateGroup(col("idx")))
 
-      meanGradient.foreach {
-        case Row(_, Row(grad_mean_arr)) =>
-          val grad_mean: BreezeVector[Double] = grad_mean_arr.asInstanceOf[DenseVector].asBreeze.toDenseVector
-          weights = weights - $(learningRate) * grad_mean
+        //      val meanGradient = transformed_dataset
+        //        .groupBy(col("group_id"))
+        //        .agg(
+        //          Summarizer
+        //            .metrics("mean")
+        //            .summary(transformed_dataset(gradientColumnName))
+        //        )
+        //        .collect()
+        //
+        //      meanGradient.foreach {
+        //        case Row(_, Row(grad_mean_arr)) =>
+        //          val grad_mean: BreezeVector[Double] = grad_mean_arr.asInstanceOf[DenseVector].asBreeze.toDenseVector
+        //          weights = weights - $(learningRate) * grad_mean
+        //      }
+
+        val meanGradient = transformed_dataset
+          .select(
+            Summarizer
+              .metrics("mean")
+              .summary(transformed_dataset(gradientColumnName))
+          )
+          .first()
+
+        meanGradient match {
+          case Row(Row(grad_mean_arr)) =>
+            val grad_mean: BreezeVector[Double] = grad_mean_arr.asInstanceOf[DenseVector].asBreeze.toDenseVector
+            weights = weights - $(learningRate) * grad_mean
+        }
       }
     }
     val params = Vectors.fromBreeze(weights)
