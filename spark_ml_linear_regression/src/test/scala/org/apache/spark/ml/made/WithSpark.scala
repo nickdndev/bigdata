@@ -1,8 +1,8 @@
 package org.apache.spark.ml.made
 
-import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.sql.{ SQLContext, SparkSession }
 
-trait WithSpark  {
+trait WithSpark {
   lazy val spark: SparkSession = WithSpark._spark
   lazy val sqlc: SQLContext    = WithSpark._sqlc
 }

@@ -8,19 +8,25 @@ import org.apache.spark.ml.regression.{ RegressionModel, Regressor }
 import org.apache.spark.ml.stat.Summarizer
 import org.apache.spark.ml.util._
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.functions.rand
 import org.apache.spark.sql.{ DataFrame, Dataset, Encoder, Row }
 
 trait LinearRegressionParams extends PredictorParams {
 
   val numberIterations: IntParam = new IntParam(this, "numberIterations", "Iterations number")
   val learningRate: DoubleParam  = new DoubleParam(this, "learningRate", "Learning Rate")
+  val batchSize: IntParam        = new IntParam(this, "batchSize", "Batch Size")
 
   setDefault(learningRate, 0.01)
   setDefault(numberIterations, 50)
+  setDefault(batchSize, 1024)
 
   def setLearningRate(value: Double): this.type = set(learningRate, value)
 
   def setNumberIterations(value: Int): this.type = set(numberIterations, value)
+
+  def setBatchSize(value: Int): this.type = set(batchSize, value)
+
 }
 
 class LinearRegression(weightsOpt: Option[BreezeVector[Double]], override val uid: String)
@@ -50,27 +56,30 @@ class LinearRegression(weightsOpt: Option[BreezeVector[Double]], override val ui
       .udf
       .register(
         name = uid + "_gradient",
-        func = { (input: Vector, output: Double) =>
-          val x    = BreezeVector.vertcat(BreezeVector(1.0), input.asBreeze.toDenseVector)
-          val grad = x * (sum(x * weights) - output)
+        func = { (features: Vector, y: Double) =>
+          val x    = BreezeVector.vertcat(BreezeVector(1.0), features.asBreeze.toDenseVector)
+          val grad = x * (sum(x * weights) - y)
           Vectors.fromBreeze(grad)
         }
       )
 
     for (_ <- 0 to $(numberIterations)) {
-      val transformed_dataset: DataFrame = dataset.withColumn(gradientColumnName, gradientEstimation(dataset($(featuresCol)), dataset($(labelCol))))
-      val meanGradient = transformed_dataset
+      val transformedDataset: DataFrame = dataset
+        .orderBy(rand())
+        .limit($(batchSize))
+        .withColumn(gradientColumnName, gradientEstimation(dataset($(featuresCol)), dataset($(labelCol))))
+
+      val meanGradient = transformedDataset
         .select(
           Summarizer
             .metrics("mean")
-            .summary(transformed_dataset(gradientColumnName))
+            .summary(transformedDataset(gradientColumnName))
         )
         .first()
 
       meanGradient match {
-        case Row(Row(grad_mean_arr))=>
-          val grad_mean: BreezeVector[Double] = grad_mean_arr.asInstanceOf[DenseVector].asBreeze.toDenseVector
-          weights = weights - $(learningRate) * grad_mean
+        case Row(Row(meanGradient)) =>
+          weights = weights - $(learningRate) * meanGradient.asInstanceOf[DenseVector].asBreeze.toDenseVector
       }
     }
     val params = Vectors.fromBreeze(weights)
@@ -90,8 +99,7 @@ class LinearRegressionModel protected[made] (override val uid: String, weights: 
   def this(weights: Vector) = this(Identifiable.randomUID("linearRegressionModel"), weights)
 
   override def predict(features: Vector): Double = {
-    val one = BreezeVector(1.0)
-    val x   = BreezeVector.vertcat(one, features.asBreeze.toDenseVector)
+    val x = BreezeVector.vertcat(BreezeVector(1.0), features.asBreeze.toDenseVector)
     sum(x * weights.asBreeze.toDenseVector)
   }
 

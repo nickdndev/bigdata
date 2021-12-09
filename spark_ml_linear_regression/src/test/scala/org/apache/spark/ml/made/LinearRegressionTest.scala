@@ -23,13 +23,14 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
 
   "Estimator" should "model weights" in {
 
-    val hiddenModel = Array(1.5, 0.3,-0.7)
-    val lr      = new LinearRegression()
+    val hiddenModel = Array(1.5, 0.3, -0.7)
+    val lr          = new LinearRegression()
       .setFeaturesCol("features")
       .setLabelCol("label")
       .setPredictionCol("prediction")
-      .setLearningRate(0.6)
-      .setNumberIterations(5)
+      .setLearningRate(0.8)
+      .setNumberIterations(2)
+      .setBatchSize(10000)
 
     val model                       = lr.fit(df)
     val params: DenseVector[Double] = model.getWeights()
@@ -44,8 +45,9 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
       .setFeaturesCol("features")
       .setLabelCol("label")
       .setPredictionCol("prediction")
-      .setLearningRate(0.6)
-      .setNumberIterations(5)
+      .setLearningRate(0.8)
+      .setNumberIterations(2)
+      .setBatchSize(10000)
 
     val model = lr.fit(df)
     check(model, df)
@@ -59,8 +61,9 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
           .setFeaturesCol("features")
           .setLabelCol("label")
           .setPredictionCol("prediction")
-          .setLearningRate(0.6)
-          .setNumberIterations(5)
+          .setLearningRate(0.8)
+          .setNumberIterations(2)
+          .setBatchSize(10000)
       )
     )
 
@@ -85,8 +88,9 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
           .setFeaturesCol("features")
           .setLabelCol("label")
           .setPredictionCol("prediction")
-          .setLearningRate(0.6)
-          .setNumberIterations(5)
+          .setLearningRate(0.8)
+          .setNumberIterations(2)
+          .setBatchSize(10000)
       )
     )
 
