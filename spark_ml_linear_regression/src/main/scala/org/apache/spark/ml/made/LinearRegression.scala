@@ -58,8 +58,8 @@ class LinearRegression(weightsOpt: Option[BreezeVector[Double]], override val ui
         name = uid + "_gradient",
         func = { (features: Vector, y: Double) =>
           val x    = BreezeVector.vertcat(BreezeVector(1.0), features.asBreeze.toDenseVector)
-          val grad = x * (sum(x * weights) - y)
-          Vectors.fromBreeze(grad)
+          val gradient = x * (sum(x * weights) - y)
+          Vectors.fromBreeze(gradient)
         }
       )
 
@@ -69,7 +69,7 @@ class LinearRegression(weightsOpt: Option[BreezeVector[Double]], override val ui
         .limit($(batchSize))
         .withColumn(gradientColumnName, gradientEstimation(dataset($(featuresCol)), dataset($(labelCol))))
 
-      val meanGradient = transformedDataset
+      val batchGradient = transformedDataset
         .select(
           Summarizer
             .metrics("mean")
@@ -77,9 +77,9 @@ class LinearRegression(weightsOpt: Option[BreezeVector[Double]], override val ui
         )
         .first()
 
-      meanGradient match {
-        case Row(Row(meanGradient)) =>
-          weights = weights - $(learningRate) * meanGradient.asInstanceOf[DenseVector].asBreeze.toDenseVector
+      batchGradient match {
+        case Row(Row(gradient)) =>
+          weights = weights - $(learningRate) * gradient.asInstanceOf[DenseVector].asBreeze.toDenseVector
       }
     }
     val params = Vectors.fromBreeze(weights)
