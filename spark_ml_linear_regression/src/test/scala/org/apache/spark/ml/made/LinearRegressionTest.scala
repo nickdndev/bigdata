@@ -3,13 +3,12 @@ import breeze.linalg.DenseVector
 import com.google.common.io.Files
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.{ Pipeline, PipelineModel }
-import org.apache.spark.sql.DataFrame
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
 
 class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpark with WithData {
 
-  private def check(model: LinearRegressionModel, data: DataFrame): Unit = {
+  private def check(model: LinearRegressionModel): Unit = {
     val mse = new RegressionEvaluator()
       .setLabelCol("label")
       .setPredictionCol("prediction")
@@ -19,7 +18,7 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
     mse should be < 0.015
   }
 
-  val precisionDelta = 0.05
+  private val precisionDelta = 0.05
 
   "Estimator" should "model weights" in {
 
@@ -50,7 +49,7 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
       .setBatchSize(10000)
 
     val model = lr.fit(df)
-    check(model, df)
+    check(model)
   }
 
   "Estimator" should "work after re-read" in {
@@ -77,7 +76,7 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
       .stages(0)
       .asInstanceOf[LinearRegressionModel]
 
-    check(model, df)
+    check(model)
   }
 
   "Model" should "work after re-read" in {
@@ -100,6 +99,6 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
 
     val reRead = PipelineModel.load(tmpFolder.getAbsolutePath)
 
-    check(reRead.stages(0).asInstanceOf[LinearRegressionModel], df)
+    check(reRead.stages(0).asInstanceOf[LinearRegressionModel])
   }
 }
