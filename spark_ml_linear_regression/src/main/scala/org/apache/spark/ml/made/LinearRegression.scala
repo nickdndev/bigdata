@@ -99,7 +99,7 @@ class LinearRegressionModel protected[made] (override val uid: String, weights: 
   def this(weights: Vector) = this(Identifiable.randomUID("linearRegressionModel"), weights)
 
   override def predict(features: Vector): Double = {
-    val x   = BreezeVector.vertcat(BreezeVector(1.0), features.asBreeze.toDenseVector)
+    val x = BreezeVector.vertcat(BreezeVector(1.0), features.asBreeze.toDenseVector)
     sum(x * weights.asBreeze.toDenseVector)
   }
 

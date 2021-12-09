@@ -23,8 +23,8 @@ class LinearRegressionTest extends AnyFlatSpec with should.Matchers with WithSpa
 
   "Estimator" should "model weights" in {
 
-    val hiddenModel = Array(1.5, 0.3,-0.7)
-    val lr      = new LinearRegression()
+    val hiddenModel = Array(1.5, 0.3, -0.7)
+    val lr          = new LinearRegression()
       .setFeaturesCol("features")
       .setLabelCol("label")
       .setPredictionCol("prediction")
